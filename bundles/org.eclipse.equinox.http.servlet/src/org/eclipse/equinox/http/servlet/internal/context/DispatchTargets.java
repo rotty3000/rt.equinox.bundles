@@ -122,8 +122,22 @@ public class DispatchTargets {
 			if ((dispatcherType == DispatcherType.FORWARD) &&
 				!response.isCommitted() && !request.isAsyncStarted()) {
 
-				response.flushBuffer();
-				response.getWriter().close();
+				try {
+					response.flushBuffer();
+					response.getWriter().close();
+				}
+				catch (IllegalStateException ise1) {
+					try {
+						ServletOutputStream outputStream = response.getOutputStream();
+						outputStream.close();
+					}
+					catch (IllegalStateException ise2) {
+						// ignore
+					}
+					catch (IOException ioe) {
+						// ignore
+					}
+				}
 			}
 
 			return true;
